@@ -17,6 +17,14 @@ def list_point_records(member_id: int | None = None) -> list[PointRecord]:
     return [PointRecord(**record) for record in records]
 
 
+def toggle_reward_status(reward_id: int) -> Reward:
+    reward = store.rewards.get(reward_id)
+    if not reward:
+        raise HTTPException(status_code=404, detail="兑换商品不存在")
+    reward["status"] = "off" if reward["status"] == "on" else "on"
+    return Reward(**reward)
+
+
 def redeem_reward(payload: RedeemRequest) -> RedeemResult:
     member = store.members.get(payload.member_id)
     reward = store.rewards.get(payload.reward_id)
@@ -24,6 +32,8 @@ def redeem_reward(payload: RedeemRequest) -> RedeemResult:
         raise HTTPException(status_code=404, detail="会员不存在")
     if not reward:
         raise HTTPException(status_code=404, detail="兑换商品不存在")
+    if reward["status"] != "on":
+        raise HTTPException(status_code=400, detail="商品已下架，无法兑换")
     if reward["stock"] <= 0:
         raise HTTPException(status_code=400, detail="库存不足")
     if member["points"] < reward["points_cost"]:

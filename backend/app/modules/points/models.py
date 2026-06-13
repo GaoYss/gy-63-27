@@ -6,6 +6,7 @@ class RewardBase(BaseModel):
     points_cost: int = Field(gt=0)
     stock: int = Field(ge=0)
     description: str = ""
+    status: str = "on"
 
 
 class Reward(RewardBase):

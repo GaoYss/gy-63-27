@@ -51,6 +51,7 @@ class MemoryStore:
                 "points_cost": 300,
                 "stock": 24,
                 "description": "满39元可用，适合日常补货。",
+                "status": "on",
             },
             2: {
                 "id": 2,
@@ -58,6 +59,7 @@ class MemoryStore:
                 "points_cost": 680,
                 "stock": 10,
                 "description": "125g装，门店自提。",
+                "status": "on",
             },
             3: {
                 "id": 3,
@@ -65,6 +67,7 @@ class MemoryStore:
                 "points_cost": 1200,
                 "stock": 8,
                 "description": "果篮增加进口奇异果和车厘子。",
+                "status": "off",
             },
         }
         self.presales = {

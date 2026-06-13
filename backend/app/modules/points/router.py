@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query
 
 from app.modules.points.models import PointAdjustRequest, PointRecord, RedeemRequest, RedeemResult, Reward
-from app.modules.points.service import adjust_points, list_point_records, list_rewards, redeem_reward
+from app.modules.points.service import adjust_points, list_point_records, list_rewards, redeem_reward, toggle_reward_status
 
 router = APIRouter()
 
@@ -9,6 +9,11 @@ router = APIRouter()
 @router.get("/rewards", response_model=list[Reward])
 def get_rewards() -> list[Reward]:
     return list_rewards()
+
+
+@router.post("/rewards/{reward_id}/toggle-status", response_model=Reward)
+def post_toggle_reward_status(reward_id: int = Path(gt=0)) -> Reward:
+    return toggle_reward_status(reward_id)
 
 
 @router.get("/records", response_model=list[PointRecord])

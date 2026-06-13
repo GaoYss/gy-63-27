@@ -1,7 +1,7 @@
 <template>
   <div class="page-stack">
     <section class="stats-grid">
-      <StatCard label="可兑换商品" :value="rewards.length" hint="库存权益" :icon="Gift" />
+      <StatCard label="可兑换商品" :value="onShelfCount" hint="上架中商品" :icon="Gift" />
       <StatCard label="当前会员积分" :value="currentMember?.points || 0" hint="兑换前余额" :icon="WalletCards" />
       <StatCard label="积分流水" :value="records.length" hint="筛选会员记录" :icon="ListChecks" />
       <StatCard label="总库存" :value="totalStock" hint="剩余兑换份数" :icon="PackageCheck" />
@@ -18,16 +18,26 @@
         </select>
       </div>
       <div class="card-grid">
-        <article v-for="reward in rewards" :key="reward.id" class="reward-card">
-          <div>
+        <article v-for="reward in rewards" :key="reward.id" class="reward-card" :class="{ 'reward-off': reward.status === 'off' }">
+          <div class="reward-header">
             <strong>{{ reward.title }}</strong>
-            <span>{{ reward.description }}</span>
+            <span class="status-tag" :class="reward.status === 'on' ? 'status-on' : 'status-off'">
+              {{ reward.status === 'on' ? '上架中' : '已下架' }}
+            </span>
           </div>
+          <span>{{ reward.description }}</span>
           <div class="reward-meta">
             <b>{{ reward.points_cost }} 分</b>
             <span>库存 {{ reward.stock }}</span>
           </div>
-          <button class="secondary-button" @click="redeem(reward.id)">兑换</button>
+          <div class="reward-actions">
+            <button class="secondary-button" :disabled="reward.status !== 'on'" @click="redeem(reward.id)">
+              {{ reward.status === 'on' ? '兑换' : '已下架' }}
+            </button>
+            <button class="toggle-button" :class="reward.status === 'on' ? 'btn-off' : 'btn-on'" @click="toggleStatus(reward.id)">
+              {{ reward.status === 'on' ? '下架' : '上架' }}
+            </button>
+          </div>
         </article>
       </div>
     </section>
@@ -77,6 +87,7 @@ const adjustForm = reactive({ change: 100, note: '购买水果获得积分' })
 
 const currentMember = computed(() => members.value.find((member) => member.id === selectedMemberId.value))
 const totalStock = computed(() => rewards.value.reduce((sum, reward) => sum + reward.stock, 0))
+const onShelfCount = computed(() => rewards.value.filter((reward) => reward.status === 'on').length)
 
 async function loadRecords() {
   const recordList = await pointApi.records(selectedMemberId.value).catch(() => fallbackRecords)
@@ -106,6 +117,18 @@ async function redeem(rewardId) {
   }
 }
 
+async function toggleStatus(rewardId) {
+  try {
+    await pointApi.toggleStatus(rewardId)
+    message.value = '商品状态已更新'
+    messageType.value = 'success'
+    await loadData()
+  } catch (error) {
+    message.value = error.message
+    messageType.value = 'error'
+  }
+}
+
 async function adjust() {
   try {
     await pointApi.adjust({
@@ -124,3 +147,69 @@ async function adjust() {
 
 onMounted(loadData)
 </script>
+
+<style scoped>
+.reward-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-on {
+  background: #e8f3e4;
+  color: #236229;
+}
+
+.status-off {
+  background: #fff1f0;
+  color: #b42318;
+}
+
+.reward-card.reward-off {
+  opacity: 0.7;
+  background: #fafafa;
+}
+
+.reward-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reward-actions button {
+  flex: 1;
+}
+
+.toggle-button {
+  border: 1px solid;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  font-weight: 800;
+  background: #fff;
+}
+
+.toggle-button.btn-on {
+  border-color: #2f7d32;
+  color: #2f7d32;
+}
+
+.toggle-button.btn-off {
+  border-color: #b42318;
+  color: #b42318;
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

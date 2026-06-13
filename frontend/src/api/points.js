@@ -5,4 +5,5 @@ export const pointApi = {
   records: (memberId) => http.get(memberId ? `/points/records?member_id=${memberId}` : '/points/records'),
   redeem: (payload) => http.post('/points/redeem', payload),
   adjust: (payload) => http.post('/points/adjust', payload),
+  toggleStatus: (rewardId) => http.post(`/points/rewards/${rewardId}/toggle-status`),
 }
